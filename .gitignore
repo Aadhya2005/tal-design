@@ -1,0 +1,18 @@
+# Virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# Input files are not redistributed - see SETUP.md for where to get them.
+# pET-28a(+) sequence files belong to their originators.
+data/*.dna
+data/*.gb
+data/*.gbk
+data/*.fasta
+data/*.txt
+data/*.dat
+data/*.sp
+
+# ...except the small provisional sequence file kept on purpose for the
+# project history (see README's "gotchas" list) - this one is ours to commit.
+!data/rstal_from_pdb_UNVERIFIED.txt

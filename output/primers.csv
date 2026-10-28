@@ -1,0 +1,7 @@
+Name,Sequence (5'->3'),Length,Anneal Tm (C),Full Tm (C),Anneal GC (%),Hairpin dG (kcal/mol),Self-dimer dG (kcal/mol),Purpose,Warnings
+RsTAL_NdeI_F,GGAATTCATATGCTGGCGATGAGCCCACCAAAAC,34,64.5,70.8,59.0,-2.3,-5.1,"5' cloning primer, adds NdeI site",none
+RsTAL_XhoI_R,CGCGGCCTCGAGAACTGGAGACTGCTGTAACAAATGG,37,61.5,74.7,44.0,-0.9,-5.7,"3' cloning primer, adds XhoI site, stop codon omitted",none
+RsTAL_seq_F1,TATCTGATCTGCGCCCACATC,21,60.0,60.0,52.0,0.0,-5.9,"internal sequencing primer, anneals at CDS position 743",none
+RsTAL_seq_F2,CGTCCATTAGGTCAAGAAATCGC,23,60.0,60.0,48.0,0.1,-2.0,"internal sequencing primer, anneals at CDS position 1510",none
+T7_promoter,TAATACGACTCACTATAGGG,20,50.3,50.3,40.0,0.0,-4.5,"standard vector sequencing primer, reads into the 5' end",none
+T7_terminator,GCTAGTTATTGCTCAGCGG,19,56.2,56.2,53.0,0.0,-3.2,"standard vector sequencing primer, reads into the 3' end",none

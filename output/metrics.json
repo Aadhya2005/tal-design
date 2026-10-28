@@ -1,0 +1,89 @@
+{
+  "protein_length_aa": 523,
+  "protein_provenance": "UniProtKB/Swiss-Prot Q3IWB0 (), sequence version 1",
+  "vector": "pET-28a",
+  "vector_is_synthetic_fixture": false,
+  "vector_reverse_complemented": true,
+  "vector_length_bp": 5369,
+  "seed": 1,
+  "naive": {
+    "label": "naive",
+    "length_nt": 1569,
+    "length_codons": 523,
+    "CAI": 0.5741747423609328,
+    "GC_percent": 39.19694072657744,
+    "GC_window_min": 28.0,
+    "GC_window_max": 52.0,
+    "GC_window_max_at": 81,
+    "rare_codons": 0,
+    "rare_percent": 0.0
+  },
+  "optimised": {
+    "label": "optimised",
+    "length_nt": 1569,
+    "length_codons": 523,
+    "CAI": 0.8686458507325666,
+    "GC_percent": 61.95028680688336,
+    "GC_window_min": 34.0,
+    "GC_window_max": 70.0,
+    "GC_window_max_at": 61,
+    "rare_codons": 0,
+    "rare_percent": 0.0
+  },
+  "forbidden_sites_remaining": {},
+  "cloning_pair_heterodimer_dG": -4.56,
+  "amplicon_bp": 1590,
+  "insert_fragment_bp": 1571,
+  "plasmid_bp": 6862,
+  "checks": [
+    {
+      "name": "Translational start",
+      "passed": true,
+      "detail": "ribosome starts 60 bp upstream of the insert ATG, in frame; leader is 'MGSSHHHHHHSSGLVPRGSH' (vector N-terminal His6 + thrombin site, retained by NdeI cloning)"
+    },
+    {
+      "name": "Insert translation",
+      "passed": true,
+      "detail": "523 aa, identical to the UniProt sequence"
+    },
+    {
+      "name": "Full expressed product",
+      "passed": true,
+      "detail": "551 aa = 20 aa leader + 523 aa RsTAL + LEHHHHHH"
+    },
+    {
+      "name": "No premature stop",
+      "passed": true,
+      "detail": "no stop codon within the insert reading frame"
+    },
+    {
+      "name": "His tag in frame",
+      "passed": true,
+      "detail": "His6 DNA at position 1576, offset 0 from frame; present in the translated ORF before the first stop"
+    },
+    {
+      "name": "5' junction (NdeI)",
+      "passed": true,
+      "detail": "CATATG reconstituted across the origin: ...CAT | ATG..."
+    },
+    {
+      "name": "3' junction (XhoI)",
+      "passed": true,
+      "detail": "XhoI site at base 1570, immediately after the last insert codon, frame offset 0 (0 = Leu-Glu reads in frame into the tag)"
+    },
+    {
+      "name": "Plasmid size",
+      "passed": true,
+      "detail": "6862 bp = vector 5369 bp - stuffer 78 bp + insert CDS 1569 bp + 2 bp (the CA of the reconstituted NdeI site and the C of the XhoI site)"
+    }
+  ],
+  "all_checks_passed": true,
+  "expression_product": {
+    "leader": "MGSSHHHHHHSSGLVPRGSH",
+    "leader_aa": 20,
+    "total_aa": 551,
+    "c_terminal_tail": "LEHHHHHH",
+    "mass_kDa": 58.1,
+    "start_bp_upstream_of_insert": 60
+  }
+}
