@@ -120,15 +120,37 @@ def optimise_cds(
     constraints.append(AvoidHairpins(stem_size=6, hairpin_window=40, location=(n - 60, n)))
     constraints.append(EnforceGCContent(mini=0.45, maxi=0.62, location=(n - 45, n)))
 
-    problem = DnaOptimizationProblem(
-        sequence=naive,
-        constraints=constraints,
-        objectives=[CodonOptimize(species="e_coli")],
-        logger=None,
-    )
+    # The two end-anchored AvoidHairpins constraints trip a bug in DNA
+    # Chisel's solver on some sequences: localising them can return None,
+    # which resolve_constraint then dereferences. Whether it fires depends on
+    # the sequence, so a pipeline tested on one protein can look fine and
+    # crash on the next. Three of the four 6OMTs here hit it; RsTAL did not.
+    #
+    # Rather than drop the constraints for everyone or let the crash through,
+    # the full set is tried first and the optional ones are removed only if
+    # the solver fails. What was dropped comes back in the result, so a
+    # weakened run is visible instead of silent.
+    optional = [c for c in constraints
+                if isinstance(c, AvoidHairpins) and c.location is not None]
+    dropped: list[str] = []
 
-    problem.resolve_constraints()
-    problem.optimize()
+    def solve(cons):
+        problem = DnaOptimizationProblem(
+            sequence=naive,
+            constraints=cons,
+            objectives=[CodonOptimize(species="e_coli")],
+            logger=None,
+        )
+        problem.resolve_constraints()
+        problem.optimize()
+        return problem
+
+    try:
+        problem = solve(constraints)
+    except AttributeError:
+        reduced = [c for c in constraints if c not in optional]
+        dropped = [f"AvoidHairpins at {c.location}" for c in optional]
+        problem = solve(reduced)
 
     return {
         "protein": protein,
@@ -137,6 +159,7 @@ def optimise_cds(
         "constraints_report": problem.constraints_text_summary(),
         "objectives_report": problem.objectives_text_summary(),
         "all_constraints_pass": problem.all_constraints_pass(),
+        "dropped_constraints": dropped,
     }
 
 

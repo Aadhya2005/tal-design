@@ -45,6 +45,7 @@ class Primer:
     purpose: str
     tail_note: str = ""
     warnings: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
     # Standard vector primers are published fixed sequences used under
     # sequencing conditions, not PCR. Holding them to PCR Tm windows would
     # report a failure that is not one.
@@ -94,7 +95,10 @@ class Primer:
 # annealing temperature. dG is the quantity that decides whether the primer
 # folds, so that is what gates the warnings here.
 HAIRPIN_DG_LIMIT = -3.0      # kcal/mol
-DIMER_DG_LIMIT = -6.0        # kcal/mol
+DIMER_DG_LIMIT = -6.0
+# How close a dimer's Tm must get to the annealing temperature
+# before it is worth warning about.
+DIMER_TM_MARGIN = 15.0        # degrees C below the anneal still worth flagging
 
 
 def check_primer(p: Primer, tm_lo: float = 58.0, tm_hi: float = 68.0) -> Primer:
@@ -116,8 +120,27 @@ def check_primer(p: Primer, tm_lo: float = 58.0, tm_hi: float = 68.0) -> Primer:
         w.append("3' end is not G or C (weaker clamp)")
     if p.hairpin_dg < HAIRPIN_DG_LIMIT:
         w.append(f"hairpin dG {p.hairpin_dg:.1f} kcal/mol is strong")
+    # A self-dimer only matters if it survives the annealing step. Both
+    # restriction sites used for cloning are palindromes (CATATG, CTCGAG),
+    # so any primer carrying one can pair with a copy of itself through the
+    # site: that is inherent to restriction cloning and no clamp removes it.
+    # Judged on dG alone every such primer looks bad. Its melting temperature
+    # tells the rest of the story - these dimers melt around 5 C, so at a
+    # 60 C anneal they do not exist.
+    #
+    # This is the same mistake as gating hairpins on Tm, in the opposite
+    # direction: one number is not enough. A dimer is flagged when it is both
+    # energetically strong and stable near the annealing temperature.
     if p.homodimer_dg < DIMER_DG_LIMIT:
-        w.append(f"self-dimer dG {p.homodimer_dg:.1f} kcal/mol is strong")
+        if p.homodimer_tm >= tm_lo - DIMER_TM_MARGIN:
+            w.append(f"self-dimer dG {p.homodimer_dg:.1f} kcal/mol, "
+                     f"Tm {p.homodimer_tm:.0f} C, stable near the anneal")
+        else:
+            p.notes.append(
+                f"self-dimer dG {p.homodimer_dg:.1f} kcal/mol but Tm "
+                f"{p.homodimer_tm:.0f} C, far below the anneal: this is the "
+                "palindromic restriction site pairing with itself and is not "
+                "a practical problem")
 
     seq = p.sequence.upper()
     for base in "ACGT":
@@ -220,6 +243,7 @@ def _search_primer(
 
 def design_cloning_primers(
     cds: str,
+    label: str = "RsTAL",
     five_site: str = "CATATG",
     five_enzyme: str = "NdeI",
     three_site: str = "CTCGAG",
@@ -249,7 +273,7 @@ def design_cloning_primers(
     fwd = _search_primer(
         template_5to3=cds[3:],
         site=five_site,
-        name="RsTAL_NdeI_F",
+        name=f"{label}_NdeI_F",
         purpose=f"5' cloning primer, adds {five_enzyme} site",
         tail_note_fmt=(
             "{clamp} clamp + " + f"{five_site} ({five_enzyme}); "
@@ -263,7 +287,7 @@ def design_cloning_primers(
     rev = _search_primer(
         template_5to3=revcomp(cds),
         site=three_site,
-        name="RsTAL_XhoI_R",
+        name=f"{label}_XhoI_R",
         purpose=f"3' cloning primer, adds {three_enzyme} site, stop codon omitted",
         tail_note_fmt=(
             "{clamp} clamp + " + f"{three_site} ({three_enzyme}); "
@@ -279,6 +303,7 @@ def design_cloning_primers(
 
 def design_internal_seq_primers(
     cds: str,
+    label: str = "RsTAL",
     spacing: int = 700,
     target_tm: float = 60.0,
     anneal_lo: int = 18,
@@ -309,7 +334,7 @@ def design_internal_seq_primers(
                     break
                 anneal = cds[start:start + n]
                 cand = Primer(
-                    name=f"RsTAL_seq_F{idx}",
+                    name=f"{label}_seq_F{idx}",
                     sequence=anneal,
                     anneal_part=anneal,
                     purpose=f"internal sequencing primer, anneals at CDS position {start + 1}",
