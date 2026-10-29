@@ -116,7 +116,7 @@ The report itself is generated from `metrics.json`, not written by hand, so the
 prose cannot drift away from what the code actually computed.
 
 
-##Two fixes found by reusing this pipeline
+## Two fixes found by reusing this pipeline
 
 Running these modules on a different protein (plant O-methyltransferases, in a
 later project) turned up two faults that a single test case had hidden.
