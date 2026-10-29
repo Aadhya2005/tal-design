@@ -115,6 +115,36 @@ given seed reproduces every number in the report exactly.
 The report itself is generated from `metrics.json`, not written by hand, so the
 prose cannot drift away from what the code actually computed.
 
+
+##Two fixes found by reusing this pipeline
+
+Running these modules on a different protein (plant O-methyltransferases, in a
+later project) turned up two faults that a single test case had hidden.
+
+**A latent crash in the optimiser.** Two of the end-anchored AvoidHairpins
+constraints trip a bug in DNA Chisel: localising a constraint returns None,
+and the solver then dereferences it. Whether it fires depends on the sequence.
+RsTAL never triggered it; three of the four 6OMTs did. optimise.py now tries
+the full constraint set first and falls back to a reduced one only when that
+fails, and it returns dropped_constraints, so a weakened run shows up instead
+of passing silently.
+
+**A primer check that flagged the wrong thing.** Both cloning sites are
+palindromes, so any primer carrying CATATG or CTCGAG can pair with a copy of
+itself through the site. On free energy alone every one of those primers looks
+bad. But the dimers melt at around 5 C and nothing is left of them at a 60 C
+anneal. check_primer now asks two questions, whether the dimer is
+energetically strong and whether it is still stable near the annealing
+temperature, and it logs the harmless case as a note instead of a warning.
+
+Same lesson as the hairpin thresholds above: one number does not decide it. The
+question is whether the structure holds together at the temperature the reaction
+actually runs at.
+
+Neither change alters this project’s output. The RsTAL run gives the same
+sequence, the same primers and the same 8 of 8 checks as before.
+
+
 ## Layout
 
 ```
